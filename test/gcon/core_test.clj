@@ -39,11 +39,6 @@
             files (gcon/list-files rclient (first dirs) :vcf)]
         (println (first files))))))
 
-;.;. Out of clutter find simplicity; from discord find harmony; in the
-;.;.                               ; middle of difficulty lies opportunity.
-;.;.                               ; -- Einstein
-;.;. (#<MutableBlobMetadataImpl [type=BLOB, id=null, name=vrntest.vcf, location=null, uri=mem://tbucket/vrntest.vcf, userMetadata={}]>)
-;.;. (nil)
 (facts "Authentication, push and pull from key-value blobstores"
     (let [rclient (gcon/get-client {:type :blobstore :provider :transient
                                     :username "test"})]
