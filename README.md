@@ -1,4 +1,4 @@
-# clj-gcon
+# Genome Connector
 
 Genome Connector is a generic API providing access to multiple resources and
 software for biological analysis. It improves interoperability of tools by

@@ -4,7 +4,8 @@
   (:require [clojure.string :as string]
             [me.raynes.fs :as fs]
             [blend.galaxy.core :as galaxy]
-            [clj-genomespace.core :as gs]))
+            [clj-genomespace.core :as gs]
+            [org.jclouds.blobstore2 :as blobstore]))
 
 ;; ## Download
 
@@ -102,6 +103,11 @@
   [rclient _]
   (galaxy/list-histories (:conn rclient)))
 
+(defmethod list-dirs :blobstore
+  ^{:doc "Retrieve top level containers/buckets for a key value store"}
+  [rclient _]
+  (seq (blobstore/containers (:conn rclient))))
+
 (defmulti list-files
   "List files in a remote directory of a specified type."
   (fn [rclient & args]
@@ -138,6 +144,11 @@
                  :size (:file-size ds)
                  :created-on nil})))))
 
+(defmethod list-files :blobstore
+  ^{:doc "List available items within a container/bucket"}
+  [rclient container _]
+  (seq (blobstore/blobs (:conn rclient) (:id container))))
+
 (defmethod list-files :default
   ^{:doc "Retrieval of pre-downloaded files in our local cache."}
   [_ dir-info ftype])
@@ -168,3 +179,14 @@
                               (:file-type params)
                               :history-id history-id
                               :display-name (fs/base-name local-file))))
+
+(defmethod put-file :blobstore
+  ^{:doc "Push to a remote blobstore within a supplied container"}
+  [rclient local-file params]
+  (let [{:keys [container metadata]} params
+        cur-blob (blobstore/blob (fs/base-name local-file)
+                                 :payload (file local-file)
+                                 :metadata metadata)]
+    (when-not (blobstore/container-exists? (:conn rclient) container)
+      (blobstore/create-container (:conn rclient) container))
+    (blobstore/put-blob (:conn rclient) container cur-blob)))

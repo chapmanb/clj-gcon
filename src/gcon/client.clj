@@ -3,7 +3,8 @@
   (:use [clojure.java.io])
   (:require [clojure.string :as string]
             [blend.galaxy.core :as galaxy]
-            [clj-genomespace.core :as gs]))
+            [clj-genomespace.core :as gs]
+            [org.jclouds.blobstore2 :as blobstore]))
 
 (defrecord RemoteClient [type conn username server])
 
@@ -46,3 +47,10 @@
         username (when user-info
                    (or (:username user-info) (:email user-info)))]
     (RemoteClient. :galaxy (when user-info galaxy-client) username url)))
+
+(defmethod get-client :blobstore
+  ^{:doc "Connection to a jClouds compatible S3-style key-value blobstore"}
+  [creds]
+  (let [{:keys [username password provider]} creds]
+    (let [jclient (blobstore/blobstore (name provider) username password)]
+      (RemoteClient. :blobstore jclient username provider))))

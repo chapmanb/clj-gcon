@@ -8,29 +8,45 @@
    - Required paramters for Galaxy:
      galaxy-url, galaxy-apikey"
   (:require [clojure.java.io :as io]
-            [clojure.test :refer :all]
             [environ.core :as environ]
-            [gcon.core :as gcon]))
+            [gcon.core :as gcon]
+            [midje.sweet :refer :all]))
 
-(deftest genomespace-files
-  (testing "Authentication, push and pull from GenomeSpace."
-    (let [{:keys [gs-username gs-password gs-url]} environ/env]
-      (when (and gs-username gs-password)
-        (let [rclient (gcon/get-client {:type :gs
-                                        :username gs-username
-                                        :password gs-password
-                                        :url gs-url})
-              dirs (gcon/list-dirs rclient ".")
-              files (gcon/list-files rclient (first dirs) :vcf)]
-          (println (first files)))))))
+(background
+ (around :facts
+         (let [data-dir (str (io/file "test" "data"))
+               vcf-file (str (io/file data-dir "vrntest.vcf"))]
+           ?form)))
 
-(deftest galaxy-files
-  (testing "Authentication, push and pull from Galaxy."
-    (let [{:keys [galaxy-url galaxy-apikey]} environ/env]
-      (when (and galaxy-url galaxy-apikey)
-        (let [rclient (gcon/get-client {:type :galaxy
-                                        :url galaxy-url
-                                        :api-key galaxy-apikey})
-              dirs (gcon/list-dirs rclient nil)
-              files (gcon/list-files rclient (first dirs) :vcf)]
-          (println (first files)))))))
+(facts "Authentication, push and pull from GenomeSpace."
+  (let [{:keys [gs-username gs-password gs-url]} environ/env]
+    (when (and gs-username gs-password)
+      (let [rclient (gcon/get-client {:type :gs
+                                      :username gs-username
+                                      :password gs-password
+                                      :url gs-url})
+            dirs (gcon/list-dirs rclient ".")
+            files (gcon/list-files rclient (first dirs) :vcf)]
+        (println (first files))))))
+
+(facts "Authentication, push and pull from Galaxy."
+  (let [{:keys [galaxy-url galaxy-apikey]} environ/env]
+    (when (and galaxy-url galaxy-apikey)
+      (let [rclient (gcon/get-client {:type :galaxy
+                                      :url galaxy-url
+                                      :api-key galaxy-apikey})
+            dirs (gcon/list-dirs rclient nil)
+            files (gcon/list-files rclient (first dirs) :vcf)]
+        (println (first files))))))
+
+;.;. Out of clutter find simplicity; from discord find harmony; in the
+;.;.                               ; middle of difficulty lies opportunity.
+;.;.                               ; -- Einstein
+;.;. (#<MutableBlobMetadataImpl [type=BLOB, id=null, name=vrntest.vcf, location=null, uri=mem://tbucket/vrntest.vcf, userMetadata={}]>)
+;.;. (nil)
+(facts "Authentication, push and pull from key-value blobstores"
+    (let [rclient (gcon/get-client {:type :blobstore :provider :transient
+                                    :username "test"})]
+      (gcon/put-file rclient vcf-file {:container "tbucket"})
+      (println (gcon/list-dirs rclient nil))
+      (println (gcon/list-files rclient {:id "tbucket"} :vcf))))

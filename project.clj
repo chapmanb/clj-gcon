@@ -6,4 +6,9 @@
                  [environ "0.4.0"]
                  [me.raynes/fs "1.4.1"]
                  [clj-genomespace "0.1.3"]
-                 [clj-blend "0.1.1-SNAPSHOT"]])
+                 [clj-blend "0.1.1-SNAPSHOT"]
+                 [org.clojure/tools.logging "0.2.6"]
+                 [org.jclouds/jclouds-allblobstore "1.5.9"]]
+  :plugins [[lein-midje "3.0.1"]
+            [lein-environ "0.4.0"]]
+  :profiles {:dev {:dependencies [[midje "1.5.1"]]}})
