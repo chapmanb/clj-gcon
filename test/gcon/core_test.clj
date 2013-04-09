@@ -40,8 +40,8 @@
         (println (first files))))))
 
 (facts "Authentication, push and pull from key-value blobstores"
-    (let [rclient (gcon/get-client {:type :blobstore :provider :transient
-                                    :username "test"})]
-      (gcon/put-file rclient vcf-file {:container "tbucket"})
-      (println (gcon/list-dirs rclient nil))
-      (println (gcon/list-files rclient {:id "tbucket"} :vcf))))
+  (let [rclient (gcon/get-client {:type :blobstore :provider :transient
+                                  :username "test"})]
+    (gcon/put-file rclient vcf-file {:container "tbucket"})
+    (println (gcon/list-dirs rclient nil))
+    (println (gcon/list-files rclient {:id "tbucket"} :vcf))))
